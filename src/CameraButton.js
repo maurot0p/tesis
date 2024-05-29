@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import {
     View, StyleSheet, Image, TouchableOpacity, Dimensions, Text,
@@ -6,9 +6,11 @@ import {
 } from 'react-native';
 import ActionSheet from 'react-native-actionsheet';
 import { NavigationActions } from 'react-navigation';
-import ImagePicker from 'react-native-image-picker';
+import * as ImagePicker from 'react-native-image-picker';
 import PropTypes from 'prop-types';
-import { Config } from '../utils/config';
+const axios = require("axios").default;
+import { utils } from '@react-native-firebase/app';
+import storage from '@react-native-firebase/storage';
 
 
 let deviceWidth = Dimensions.get('window').width;
@@ -78,7 +80,8 @@ class CameraButton extends Component {
             type: this.props.type,
             imageSource: null,
             options: ['Take Photo', 'Choose from Library', 'Cancel'],
-            test: ''
+            test: '',
+            ingredients: []
         }
 
         if (this.props.defaultImage !== undefined){
@@ -96,10 +99,54 @@ class CameraButton extends Component {
             }
         }
     }
+    componentDidUpdate(prevProps, prevState) {
+        // Check if ingredients state has changed
+        if (this.state.ingredients !== prevState.ingredients) {
+            // Do something with the updated ingredients state
+            this.props.navigation.navigate('Ingredientes', { ingredients: this.state.ingredients });
+        }
+    }
 
+    async extractData(file) {
+        const apiKey = '8d2e6323-0c89-11ef-b268-763d7df91960';
+        const modelId = '4b364195-6436-46c1-a8e7-e9998cfac73b'
+          const authHeaderVal =
+              "Basic " + Buffer.from(`${apiKey}:`, "utf-8").toString("base64");
+          const fileurl = `urls=${file}`;
+      
+          try {
+            const response = await axios.post(
+                `https://app.nanonets.com/api/v2/OCR/Model/${modelId}/LabelFile?async=false`,
+                fileurl,
+                {
+                    headers: {
+                        "Authorization": authHeaderVal,
+                        "Accept": "application/json"
+                    }
+                }
+            );
+            console.log(response.data.result[0].prediction[0].ocr_text)
+            this.setState({ ingredients: [response.data.result[0].prediction[0].ocr_text] });
+            return response.data.result[0].prediction[0].ocr_text;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    }
     showActionSheet() {
         this.ActionSheet.show();
     }
+    uploadImageToStorage = (path, imageName) => {
+        let reference = storage().ref(imageName);         // 2
+        let task = reference.putFile(path);               // 3
+      
+        task.then(() => {   
+          reference.getDownloadURL().then((url) => {
+            const response = this.extractData(url)
+            console.log(response.data)
+          })
+        }).catch((e) => console.log('uploading image error => ', e));
+      }
 
     uploadPhoto(response) {
         if (response.didCancel) {
@@ -110,24 +157,15 @@ class CameraButton extends Component {
             var source = {
                 uri: Platform.OS === 'ios' ? response.uri.replace('file://', '') : response.uri
             };
-
-            if (this.state.type == 'home'){
-                this.props.dispatch(NavigationActions.navigate({
-                    routeName: 'Search',
-                    params: {
-                        imageResponse: response,
-                        directUrl: false
-                    }
-                }));
-            }else{
-                this.setState({imageSource: source, directUrl: false});
-            }
+            this.uploadImageToStorage(source.uri, response.fileName)
 
             if (this.props.onImageUpload !== undefined){
                 this.props.onImageUpload(response, this.state.directUrl);
             }
+
         }
     }
+
 
     takePhoto() {
         var options = {
@@ -136,7 +174,7 @@ class CameraButton extends Component {
             }
         };
         ImagePicker.launchCamera(options, (response)  => {
-            this.uploadPhoto(response);
+            this.uploadPhoto(response.assets[0]);
         });
     }
 
@@ -147,14 +185,14 @@ class CameraButton extends Component {
             }
         };
         ImagePicker.launchImageLibrary(options, (response)  => {
-            this.uploadPhoto(response);
+            this.uploadPhoto(response.assets[0]);
         });
     }
 
     render() {
         if (this.state.imageSource == null){
             var image = <Image style={this.state.type == 'home' ? styles.cameraIcon : styles.cameraIconSmall}
-              source={require('./../../assets/camera_icon.png')}
+              source={require('./assets/camera_icon.png')}
             />
         }else{
             var image = <Image style={this.state.type == 'home' ? styles.photo : styles.photoSmall}

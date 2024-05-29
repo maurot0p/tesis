@@ -7,8 +7,6 @@ import {
     ImageBackground, TouchableOpacity, Alert, ScrollView
 } from 'react-native';
 import CameraButton from './CameraButton';
-import LastSearch from './LastSearch';
-import { Config } from '../utils/config';
 import TimerMixin from 'react-timer-mixin';
 
 
@@ -102,49 +100,34 @@ class HomeScreen extends Component {
 
 
     render() {
-
+        const { navigation } = this.props;
         return (
             <View style={styles.container}>
                 <StatusBar barStyle="light-content" />
                 <View style={styles.searchBox}>
                     <ImageBackground style={styles.bgImage}
                         resizeMode="cover"
-                        source={require('./../../assets/home_bg.png')}>
+                        source={require('./assets/background.png')}>
                         <View style={styles.searchContent}>
                             <View style={styles.space}></View>
                             <View style={styles.searchText}>
                                 <Text style={styles.text1}>
-                                    Search product with an image!
+                                    Toma foto de ingredientes
                                 </Text>
                                 <Text style={styles.text2}>
-                                    Please upload a photo of your product.
+                                    Porfavor sube una foto de tu lista de ingredientes disponibles.
                                 </Text>
                             </View>
                             <View style={styles.buttonWrap}>
                                 <View style={styles.buttonFrame}>
                                     <View style={styles.buttonFrame2}>
-                                        <CameraButton
-                                        type="home" />
+                                    <CameraButton type="home" navigation={navigation} />
                                     </View>
                                 </View>
                             </View>
                             <View style={styles.space}></View>
                         </View>
                     </ImageBackground>
-                </View>
-                <View style={styles.circle}>
-                    <ImageBackground resizeMode="cover" style={styles.circleImg}
-                      source={require('./../../assets/circle.png')} />
-                </View>
-                <View style={styles.footer}>
-                    <View style={styles.lastSearch}>
-                      <LastSearch />
-                    </View>
-                    <View style={styles.copyright}>
-                        <Text style={styles.copyrightText}>
-                            Designed with love by profind
-                        </Text>
-                    </View>
                 </View>
             </View>
         );

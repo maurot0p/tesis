@@ -3,6 +3,10 @@ import type {PropsWithChildren} from 'react';
 const axios = require("axios").default;
 import { utils } from '@react-native-firebase/app';
 import storage from '@react-native-firebase/storage';
+import { Provider } from 'react-redux';
+import store from './src/context/store';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 if (typeof Buffer === "undefined") global.Buffer = require("buffer").Buffer;
 import {
   SafeAreaView,
@@ -24,7 +28,9 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import { Camera, CameraType } from 'react-native-camera-kit';
-
+import HomeScreen from './src/HomeScreen';
+import IngredientScreen from './src/IngredientScreen';
+const Stack = createStackNavigator();
 
 async function extractData(file) {
   const apiKey = '8d2e6323-0c89-11ef-b268-763d7df91960';
@@ -91,33 +97,14 @@ function App(): React.JSX.Element {
   },[photo])
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-       <Button
-    onPress={() =>
-      launchImageLibrary(
-       {
-        mediaType: 'photo',
-        includeBase64: false,
-        maxHeight: 200,
-        maxWidth: 200,
-       },
-        response => {
-           // setPhoto(response.assets[0]);
-           uploadImageToStorage(response.assets[0].uri, response.assets[0].fileName)
-          },
-        )
-     }
-       title="Select Image"
-/>
-      </ScrollView>
-    </SafeAreaView>
+    <Provider store={store}>
+       <NavigationContainer>
+            <Stack.Navigator initialRouteName="Home">
+                <Stack.Screen name="Camara" component={HomeScreen} />
+                <Stack.Screen name="Ingredientes" component={IngredientScreen} />
+            </Stack.Navigator>
+        </NavigationContainer>
+    </Provider>
   );
 }
 
