@@ -89,19 +89,12 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  useEffect(()=> {
-    if (photo !== null) {
-    // uploadAsFileToFirebase(photo?.uri);
-    }
-
-  },[photo])
-
   return (
     <Provider store={store}>
        <NavigationContainer>
             <Stack.Navigator initialRouteName="Home">
                 <Stack.Screen name="Camara" component={HomeScreen} />
-                <Stack.Screen name="Ingredientes" component={IngredientScreen} />
+                <Stack.Screen name="Recetas" component={IngredientScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     </Provider>

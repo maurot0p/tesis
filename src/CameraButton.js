@@ -2,8 +2,9 @@ import React, { Component, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import {
     View, StyleSheet, Image, TouchableOpacity, Dimensions, Text,
-    Platform
+    Platform, ActivityIndicator
 } from 'react-native';
+import { generateResponse } from './services/ChatGPTService';
 import ActionSheet from 'react-native-actionsheet';
 import { NavigationActions } from 'react-navigation';
 import * as ImagePicker from 'react-native-image-picker';
@@ -12,9 +13,23 @@ const axios = require("axios").default;
 import { utils } from '@react-native-firebase/app';
 import storage from '@react-native-firebase/storage';
 
-
 let deviceWidth = Dimensions.get('window').width;
 let deviceHeight = Dimensions.get('window').height;
+
+function extractJsonObjects(text) {
+    const jsonObjects = [];
+    const regex = /\{[^}]+\}/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      try {
+        const jsonObject = JSON.parse(match[0]);
+        jsonObjects.push(jsonObject);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+      }
+    }
+    return jsonObjects;
+  }
 
 const styles = StyleSheet.create({
     button: {
@@ -30,19 +45,18 @@ const styles = StyleSheet.create({
         },
         shadowRadius: 30,
         shadowOpacity: 1,
-        alignItems: "center"
+        alignItems: "center",
+        justifyContent: "center"
     },
     cameraIcon: {
         width: deviceWidth * 0.20,
         height: deviceWidth * 0.20,
-        top: deviceWidth * 0.10,
-        opacity: 0.9
+        opacity: 0.9,
     },
     photo: {
         width: deviceWidth * 0.36,
         height: deviceWidth * 0.36,
         borderRadius: (deviceWidth * 0.36) / 2,
-        top: deviceWidth * 0.02
     },
     buttonSmall: {
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
@@ -69,9 +83,19 @@ const styles = StyleSheet.create({
         width: deviceWidth * 0.19,
         height: deviceWidth * 0.19,
         borderRadius: (deviceWidth * 0.19) / 2
+    },
+    processButton: {
+        backgroundColor: '#FFD369',
+        padding: 10,
+        borderRadius: 5,
+        marginTop: 80,
+        alignItems: 'center'
+    },
+    processButtonText: {
+        color: 'black',
+        fontSize: 16
     }
 });
-
 
 class CameraButton extends Component {
     constructor(props) {
@@ -81,8 +105,9 @@ class CameraButton extends Component {
             imageSource: null,
             options: ['Take Photo', 'Choose from Library', 'Cancel'],
             test: '',
-            ingredients: []
-        }
+            ingredients: [],
+            isUploading: false
+        };
 
         if (this.props.defaultImage !== undefined){
             this.state.directUrl = this.props.directUrl;
@@ -99,22 +124,25 @@ class CameraButton extends Component {
             }
         }
     }
-    componentDidUpdate(prevProps, prevState) {
-        // Check if ingredients state has changed
+
+    async componentDidUpdate(prevProps, prevState) {
         if (this.state.ingredients !== prevState.ingredients) {
-            // Do something with the updated ingredients state
-            this.props.navigation.navigate('Ingredientes', { ingredients: this.state.ingredients });
+            const botResponse = await generateResponse(this.state.ingredients);
+            console.log('before parsing' + botResponse);
+            const jsonresponse = extractJsonObjects(botResponse);
+            this.setState({ isUploading: false });
+            this.props.navigation.navigate('Recetas', { ingredients: jsonresponse });
         }
     }
 
     async extractData(file) {
         const apiKey = '8d2e6323-0c89-11ef-b268-763d7df91960';
         const modelId = '4b364195-6436-46c1-a8e7-e9998cfac73b'
-          const authHeaderVal =
-              "Basic " + Buffer.from(`${apiKey}:`, "utf-8").toString("base64");
-          const fileurl = `urls=${file}`;
-      
-          try {
+        const authHeaderVal =
+            "Basic " + Buffer.from(`${apiKey}:`, "utf-8").toString("base64");
+        const fileurl = `urls=${file}`;
+
+        try {
             const response = await axios.post(
                 `https://app.nanonets.com/api/v2/OCR/Model/${modelId}/LabelFile?async=false`,
                 fileurl,
@@ -130,42 +158,42 @@ class CameraButton extends Component {
             return response.data.result[0].prediction[0].ocr_text;
         } catch (err) {
             console.error(err);
+            this.setState({ isUploading: false });
             return null;
         }
     }
+
     showActionSheet() {
         this.ActionSheet.show();
     }
+
     uploadImageToStorage = (path, imageName) => {
-        let reference = storage().ref(imageName);         // 2
-        let task = reference.putFile(path);               // 3
-      
+        this.setState({ isUploading: true });
+        let reference = storage().ref(imageName);
+        let task = reference.putFile(path);
+
         task.then(() => {   
-          reference.getDownloadURL().then((url) => {
-            const response = this.extractData(url)
-            console.log(response.data)
-          })
-        }).catch((e) => console.log('uploading image error => ', e));
-      }
+            reference.getDownloadURL().then((url) => {
+                this.extractData(url);
+            })
+        }).catch((e) => {
+            console.log('uploading image error => ', e);
+            this.setState({ isUploading: false });
+        });
+    }
 
     uploadPhoto(response) {
         if (response.didCancel) {
             console.log('User cancelled image picker');
-        }else if (response.error) {
+        } else if (response.error) {
             console.log('ImagePicker Error: ', response.error);
-        }else{
+        } else {
             var source = {
                 uri: Platform.OS === 'ios' ? response.uri.replace('file://', '') : response.uri
             };
-            this.uploadImageToStorage(source.uri, response.fileName)
-
-            if (this.props.onImageUpload !== undefined){
-                this.props.onImageUpload(response, this.state.directUrl);
-            }
-
+            this.setState({ imageSource: source });
         }
     }
-
 
     takePhoto() {
         var options = {
@@ -173,7 +201,7 @@ class CameraButton extends Component {
                 skipBackup: true
             }
         };
-        ImagePicker.launchCamera(options, (response)  => {
+        ImagePicker.launchCamera(options, (response) => {
             this.uploadPhoto(response.assets[0]);
         });
     }
@@ -184,49 +212,62 @@ class CameraButton extends Component {
                 skipBackup: true
             }
         };
-        ImagePicker.launchImageLibrary(options, (response)  => {
+        ImagePicker.launchImageLibrary(options, (response) => {
             this.uploadPhoto(response.assets[0]);
         });
     }
 
-    render() {
-        if (this.state.imageSource == null){
-            var image = <Image style={this.state.type == 'home' ? styles.cameraIcon : styles.cameraIconSmall}
-              source={require('./assets/camera_icon.png')}
-            />
-        }else{
-            var image = <Image style={this.state.type == 'home' ? styles.photo : styles.photoSmall}
-              source={this.state.imageSource}
-            />
+    processIngredients = () => {
+        if (this.state.imageSource) {
+            const fileName = this.state.imageSource.uri.split('/').pop();
+            this.uploadImageToStorage(this.state.imageSource.uri, fileName);
         }
+    }
 
+    render() {
+        const { isUploading, imageSource } = this.state;
 
         return (
-          <View>
-              <TouchableOpacity
-              onPress={this.showActionSheet.bind(this)}>
-                  <View style={this.state.type == 'home' ? styles.button : styles.buttonSmall}>
-                      {image}
-                  </View>
-              </TouchableOpacity>
-              <ActionSheet
-                  ref={o => this.ActionSheet = o}
-                  title={'Upload an Photo'}
-                  options={this.state.options}
-                  cancelButtonIndex={this.state.options.length - 1}
-                  destructiveButtonIndex={-1}
-                  onPress={(index) => {
-                      if (index == 0){
-                          this.takePhoto();
-                      }else if (index == 1) {
-                          this.chooseFromLibrary();
-                      }
-                  }}
+            <View>
+                <TouchableOpacity
+                    onPress={this.showActionSheet.bind(this)}>
+                    <View style={this.state.type == 'home' ? styles.button : styles.buttonSmall}>
+                        {imageSource == null ? (
+                            <Image style={this.state.type == 'home' ? styles.cameraIcon : styles.cameraIconSmall}
+                                source={require('./assets/whiteicon.png')}
+                            />
+                        ) : (
+                            <Image style={this.state.type == 'home' ? styles.photo : styles.photoSmall}
+                                source={imageSource}
+                            />
+                        )}
+                    </View>
+                </TouchableOpacity>
+                <ActionSheet
+                    ref={o => this.ActionSheet = o}
+                    title={'Upload a Photo'}
+                    options={this.state.options}
+                    cancelButtonIndex={this.state.options.length - 1}
+                    destructiveButtonIndex={-1}
+                    onPress={(index) => {
+                        if (index == 0) {
+                            this.takePhoto();
+                        } else if (index == 1) {
+                            this.chooseFromLibrary();
+                        }
+                    }}
                 />
-          </View>
-      );
-  }
+                {imageSource && !isUploading && (
+                    <TouchableOpacity style={styles.processButton} onPress={this.processIngredients}>
+                        <Text style={styles.processButtonText}>Procesar Ingredientes</Text>
+                    </TouchableOpacity>
+                )}
+                {isUploading && (
+                    <ActivityIndicator size="large" color="#0000ff" />
+                )}
+            </View>
+        );
+    }
 }
-
 
 export default connect()(CameraButton);

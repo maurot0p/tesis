@@ -1706,6 +1706,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@google/generative-ai@npm:^0.12.0":
+  version: 0.12.0
+  resolution: "@google/generative-ai@npm:0.12.0"
+  checksum: 713408ef35e7647555cc94a90fd1b5714b5302628218a58fc620cd893264b5df5c495ccd61bcf063afb8db76f91432b5cc8dd7df7cd80fa89c548fd4b1566f9b
+  languageName: node
+  linkType: hard
+
 "@hapi/hoek@npm:^9.0.0, @hapi/hoek@npm:^9.3.0":
   version: 9.3.0
   resolution: "@hapi/hoek@npm:9.3.0"
@@ -4025,6 +4032,7 @@ __metadata:
     "@babel/core": ^7.20.0
     "@babel/preset-env": ^7.20.0
     "@babel/runtime": ^7.20.0
+    "@google/generative-ai": ^0.12.0
     "@react-native-firebase/app": ^19.2.2
     "@react-native-firebase/storage": ^19.2.2
     "@react-native/babel-preset": 0.74.83

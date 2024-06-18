@@ -16,11 +16,11 @@ let deviceHeight = Dimensions.get('window').height;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f7f7f7',
+        backgroundColor: '#121212',
     },
     searchBox: {
         flex: 5,
-        backgroundColor: 'rgba(65, 184, 75, 1)'
+        backgroundColor: '#121212'
     },
     bgImage: {
         flex: 1
@@ -105,9 +105,6 @@ class HomeScreen extends Component {
             <View style={styles.container}>
                 <StatusBar barStyle="light-content" />
                 <View style={styles.searchBox}>
-                    <ImageBackground style={styles.bgImage}
-                        resizeMode="cover"
-                        source={require('./assets/background.png')}>
                         <View style={styles.searchContent}>
                             <View style={styles.space}></View>
                             <View style={styles.searchText}>
@@ -127,7 +124,6 @@ class HomeScreen extends Component {
                             </View>
                             <View style={styles.space}></View>
                         </View>
-                    </ImageBackground>
                 </View>
             </View>
         );
