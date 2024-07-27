@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import axios from 'axios';
+import DefaultScreen from './DefaultScreen';  // Import the DefaultScreen component
 
 const deviceWidth = Dimensions.get('window').width;
 
@@ -71,22 +72,27 @@ const RecipeItem = ({ recipe }) => (
   <View style={styles.recipeContainer}>
     <Image source={{ uri: recipe.url }} style={styles.recipeImage} />
     <View style={styles.recipeDetails}>
-      <Text style={styles.recipeTitle}>{recipe.nombre}</Text>
-      <Text style={styles.recipeDescription}>{recipe.descripcion}</Text>
+      <Text style={styles.recipeTitle}>{recipe.name}</Text>
+      <Text style={styles.recipeDescription}>{recipe.directions}</Text>
     </View>
   </View>
 );
 
-const IngredientScreen = ({ route }) => {
-  const { ingredients } = route.params;
+const RecipesScreen = ({ route, navigation }) => {
+  const { recipes } = route.params || {};
+
+  if (!recipes || recipes.length === 0) {
+    return <DefaultScreen navigation={navigation} />;
+  }
+
   const [recipesWithImages, setRecipesWithImages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchImages = async () => {
       const updatedRecipes = await Promise.all(
-        ingredients.map(async (recipe) => {
-          const imageUrl = await searchImage(recipe.nombre);
+        recipes.map(async (recipe) => {
+          const imageUrl = await searchImage(recipe.name);
           return { ...recipe, url: imageUrl };
         })
       );
@@ -95,7 +101,7 @@ const IngredientScreen = ({ route }) => {
     };
 
     fetchImages();
-  }, [ingredients]);
+  }, [recipes]);
 
   if (loading) {
     return (
@@ -115,4 +121,4 @@ const IngredientScreen = ({ route }) => {
   );
 };
 
-export default IngredientScreen;
+export default RecipesScreen;

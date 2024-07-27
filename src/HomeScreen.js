@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { NavigationActions } from 'react-navigation';
 import {
     Button, StyleSheet, Text, View, StatusBar, Dimensions, Image,
     ImageBackground, TouchableOpacity, Alert, ScrollView
 } from 'react-native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { NavigationContainer } from '@react-navigation/native';
 import CameraButton from './CameraButton';
+import RecipesScreen from './SavedRecipesScreen'; // Import RecipesScreen
 import TimerMixin from 'react-timer-mixin';
-
 
 let deviceWidth = Dimensions.get('window').width;
 let deviceHeight = Dimensions.get('window').height;
@@ -92,12 +93,9 @@ const styles = StyleSheet.create({
 });
 
 class HomeScreen extends Component {
-
     constructor(props) {
-        super(props)
-
+        super(props);
     }
-
 
     render() {
         const { navigation } = this.props;
@@ -105,25 +103,25 @@ class HomeScreen extends Component {
             <View style={styles.container}>
                 <StatusBar barStyle="light-content" />
                 <View style={styles.searchBox}>
-                        <View style={styles.searchContent}>
-                            <View style={styles.space}></View>
-                            <View style={styles.searchText}>
-                                <Text style={styles.text1}>
-                                    Toma foto de ingredientes
-                                </Text>
-                                <Text style={styles.text2}>
-                                    Porfavor sube una foto de tu lista de ingredientes disponibles.
-                                </Text>
-                            </View>
-                            <View style={styles.buttonWrap}>
-                                <View style={styles.buttonFrame}>
-                                    <View style={styles.buttonFrame2}>
+                    <View style={styles.searchContent}>
+                        <View style={styles.space}></View>
+                        <View style={styles.searchText}>
+                            <Text style={styles.text1}>
+                                Toma foto de ingredientes
+                            </Text>
+                            <Text style={styles.text2}>
+                                Porfavor sube una foto de tu lista de ingredientes disponibles.
+                            </Text>
+                        </View>
+                        <View style={styles.buttonWrap}>
+                            <View style={styles.buttonFrame}>
+                                <View style={styles.buttonFrame2}>
                                     <CameraButton type="home" navigation={navigation} />
-                                    </View>
                                 </View>
                             </View>
-                            <View style={styles.space}></View>
                         </View>
+                        <View style={styles.space}></View>
+                    </View>
                 </View>
             </View>
         );

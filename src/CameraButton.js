@@ -12,6 +12,7 @@ import PropTypes from 'prop-types';
 const axios = require("axios").default;
 import { utils } from '@react-native-firebase/app';
 import storage from '@react-native-firebase/storage';
+import { Buffer } from "buffer";
 
 let deviceWidth = Dimensions.get('window').width;
 let deviceHeight = Dimensions.get('window').height;
@@ -127,11 +128,25 @@ class CameraButton extends Component {
 
     async componentDidUpdate(prevProps, prevState) {
         if (this.state.ingredients !== prevState.ingredients) {
-            const botResponse = await generateResponse(this.state.ingredients);
-            console.log('before parsing' + botResponse);
-            const jsonresponse = extractJsonObjects(botResponse);
-            this.setState({ isUploading: false });
-            this.props.navigation.navigate('Recetas', { ingredients: jsonresponse });
+            this.setState({ isUploading: true });
+    
+            try {
+                const response = await axios.post('http://localhost:8000/get-recipes/', {
+                    ingredients: this.state.ingredients,
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+    
+                const data = response.data;
+                console.log(data.recipes);
+                this.props.navigation.navigate('Recipes', { recipes: data.recipes });
+            } catch (error) {
+                console.error('Error fetching recipes:', error);
+            } finally {
+                this.setState({ isUploading: false });
+            }
         }
     }
 
@@ -202,7 +217,12 @@ class CameraButton extends Component {
             }
         };
         ImagePicker.launchCamera(options, (response) => {
-            this.uploadPhoto(response.assets[0]);
+            if (response && response.assets && response.assets.length > 0) {
+                this.uploadPhoto(response.assets[0]);
+            } else {
+                // Handle the case when the user cancels the photo selection
+                console.log('User cancelled photo selection');
+            }
         });
     }
 
@@ -213,7 +233,12 @@ class CameraButton extends Component {
             }
         };
         ImagePicker.launchImageLibrary(options, (response) => {
-            this.uploadPhoto(response.assets[0]);
+            if (response && response.assets && response.assets.length > 0) {
+                this.uploadPhoto(response.assets[0]);
+            } else {
+                // Handle the case when the user cancels the photo selection
+                console.log('User cancelled photo selection');
+            }
         });
     }
 
