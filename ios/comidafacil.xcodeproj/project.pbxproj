@@ -39,6 +39,25 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = comidafacil/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = comidafacil/main.m; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = comidafacil/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		22A715F22C556EC500302579 /* AntDesign.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = AntDesign.ttf; sourceTree = "<group>"; };
+		22A715F32C556EC500302579 /* Entypo.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Entypo.ttf; sourceTree = "<group>"; };
+		22A715F42C556EC500302579 /* EvilIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = EvilIcons.ttf; sourceTree = "<group>"; };
+		22A715F52C556EC500302579 /* Feather.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Feather.ttf; sourceTree = "<group>"; };
+		22A715F62C556EC500302579 /* FontAwesome.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome.ttf; sourceTree = "<group>"; };
+		22A715F72C556EC500302579 /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome5_Brands.ttf; sourceTree = "<group>"; };
+		22A715F82C556EC500302579 /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome5_Regular.ttf; sourceTree = "<group>"; };
+		22A715F92C556EC500302579 /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome5_Solid.ttf; sourceTree = "<group>"; };
+		22A715FA2C556EC500302579 /* FontAwesome6_Brands.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome6_Brands.ttf; sourceTree = "<group>"; };
+		22A715FB2C556EC500302579 /* FontAwesome6_Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome6_Regular.ttf; sourceTree = "<group>"; };
+		22A715FC2C556EC500302579 /* FontAwesome6_Solid.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FontAwesome6_Solid.ttf; sourceTree = "<group>"; };
+		22A715FD2C556EC500302579 /* Fontisto.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fontisto.ttf; sourceTree = "<group>"; };
+		22A715FE2C556EC500302579 /* Foundation.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Foundation.ttf; sourceTree = "<group>"; };
+		22A715FF2C556EC500302579 /* Ionicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Ionicons.ttf; sourceTree = "<group>"; };
+		22A716002C556EC500302579 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MaterialCommunityIcons.ttf; sourceTree = "<group>"; };
+		22A716012C556EC500302579 /* MaterialIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MaterialIcons.ttf; sourceTree = "<group>"; };
+		22A716022C556EC500302579 /* Octicons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Octicons.ttf; sourceTree = "<group>"; };
+		22A716032C556EC500302579 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SimpleLineIcons.ttf; sourceTree = "<group>"; };
+		22A716042C556EC500302579 /* Zocial.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Zocial.ttf; sourceTree = "<group>"; };
 		22C3F2C12BF3DFD3003170A3 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-comidafacil.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-comidafacil.debug.xcconfig"; path = "Target Support Files/Pods-comidafacil/Pods-comidafacil.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-comidafacil.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-comidafacil.release.xcconfig"; path = "Target Support Files/Pods-comidafacil/Pods-comidafacil.release.xcconfig"; sourceTree = "<group>"; };
@@ -91,6 +110,7 @@
 		13B07FAE1A68108700A75B9A /* comidafacil */ = {
 			isa = PBXGroup;
 			children = (
+				22A716052C556EC500302579 /* Fonts */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -101,6 +121,33 @@
 				EA7AB282589912F95CAD46CE /* PrivacyInfo.xcprivacy */,
 			);
 			name = comidafacil;
+			sourceTree = "<group>";
+		};
+		22A716052C556EC500302579 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				22A715F22C556EC500302579 /* AntDesign.ttf */,
+				22A715F32C556EC500302579 /* Entypo.ttf */,
+				22A715F42C556EC500302579 /* EvilIcons.ttf */,
+				22A715F52C556EC500302579 /* Feather.ttf */,
+				22A715F62C556EC500302579 /* FontAwesome.ttf */,
+				22A715F72C556EC500302579 /* FontAwesome5_Brands.ttf */,
+				22A715F82C556EC500302579 /* FontAwesome5_Regular.ttf */,
+				22A715F92C556EC500302579 /* FontAwesome5_Solid.ttf */,
+				22A715FA2C556EC500302579 /* FontAwesome6_Brands.ttf */,
+				22A715FB2C556EC500302579 /* FontAwesome6_Regular.ttf */,
+				22A715FC2C556EC500302579 /* FontAwesome6_Solid.ttf */,
+				22A715FD2C556EC500302579 /* Fontisto.ttf */,
+				22A715FE2C556EC500302579 /* Foundation.ttf */,
+				22A715FF2C556EC500302579 /* Ionicons.ttf */,
+				22A716002C556EC500302579 /* MaterialCommunityIcons.ttf */,
+				22A716012C556EC500302579 /* MaterialIcons.ttf */,
+				22A716022C556EC500302579 /* Octicons.ttf */,
+				22A716032C556EC500302579 /* SimpleLineIcons.ttf */,
+				22A716042C556EC500302579 /* Zocial.ttf */,
+			);
+			name = Fonts;
+			path = "../node_modules/react-native-vector-icons/Fonts";
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {

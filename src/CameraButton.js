@@ -138,9 +138,7 @@ class CameraButton extends Component {
                         'Content-Type': 'application/json',
                     }
                 });
-    
                 const data = response.data;
-                console.log(data.recipes);
                 this.props.navigation.navigate('Recipes', { recipes: data.recipes });
             } catch (error) {
                 console.error('Error fetching recipes:', error);
@@ -244,8 +242,9 @@ class CameraButton extends Component {
 
     processIngredients = () => {
         if (this.state.imageSource) {
-            const fileName = this.state.imageSource.uri.split('/').pop();
-            this.uploadImageToStorage(this.state.imageSource.uri, fileName);
+            // const fileName = this.state.imageSource.uri.split('/').pop();
+            // this.uploadImageToStorage(this.state.imageSource.uri, fileName);
+            this.setState({ ingredients: ['baguette' ,'jamon' ,'queso'] });
         }
     }
 

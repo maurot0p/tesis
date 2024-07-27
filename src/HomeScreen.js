@@ -8,7 +8,6 @@ import {
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import CameraButton from './CameraButton';
-import RecipesScreen from './SavedRecipesScreen'; // Import RecipesScreen
 import TimerMixin from 'react-timer-mixin';
 
 let deviceWidth = Dimensions.get('window').width;
