@@ -1,158 +1,129 @@
-import React, { Component, useState, useEffect } from 'react';
-import { connect } from 'react-redux';
-import {
-    View, StyleSheet, Image, TouchableOpacity, Dimensions, Text,
-    Platform, ActivityIndicator
-} from 'react-native';
-import { generateResponse } from './services/ChatGPTService';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator, Image, Text } from 'react-native';
+import { Button } from 'react-native-elements';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import ActionSheet from 'react-native-actionsheet';
-import { NavigationActions } from 'react-navigation';
 import * as ImagePicker from 'react-native-image-picker';
-import PropTypes from 'prop-types';
-const axios = require("axios").default;
-import { utils } from '@react-native-firebase/app';
+import axios from 'axios';
 import storage from '@react-native-firebase/storage';
 import { Buffer } from "buffer";
-
+import { connect } from 'react-redux';
+import {
+    MagicModalPortal,
+    magicModal,
+    useMagicModal,
+    MagicModalHideReason
+} from "react-native-magic-modal";
 let deviceWidth = Dimensions.get('window').width;
-let deviceHeight = Dimensions.get('window').height;
-
-function extractJsonObjects(text) {
-    const jsonObjects = [];
-    const regex = /\{[^}]+\}/g;
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-      try {
-        const jsonObject = JSON.parse(match[0]);
-        jsonObjects.push(jsonObject);
-      } catch (e) {
-        console.error('Failed to parse JSON:', e);
-      }
-    }
-    return jsonObjects;
-  }
 
 const styles = StyleSheet.create({
+    buttonContainer: {
+        alignItems: 'center',
+    },
     button: {
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
         width: deviceWidth * 0.40,
         height: deviceWidth * 0.40,
         borderRadius: (deviceWidth * 0.40) / 2,
-        top: deviceWidth * 0.05,
-        shadowColor: '#181c17',
-        shadowOffset: {
-            width: 0,
-            height: 0
-        },
-        shadowRadius: 30,
-        shadowOpacity: 1,
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
+        overflow: 'hidden',
     },
-    cameraIcon: {
-        width: deviceWidth * 0.20,
-        height: deviceWidth * 0.20,
-        opacity: 0.9,
+    iconStyle: {
+        fontSize: deviceWidth * 0.20,
+        color: 'black',
     },
     photo: {
-        width: deviceWidth * 0.36,
-        height: deviceWidth * 0.36,
-        borderRadius: (deviceWidth * 0.36) / 2,
+        width: '100%',
+        height: '100%',
+        borderRadius: (deviceWidth * 0.40) / 2,
+        resizeMode: 'cover',
+        position: 'absolute',
     },
-    buttonSmall: {
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        shadowColor: '#181c17',
-        shadowOffset: {
-            width: 0,
-            height: 0
-        },
-        shadowRadius: 30,
-        shadowOpacity: 1,
-        alignItems: "center",
-        width: deviceWidth * 0.23,
-        height: deviceWidth * 0.23,
-        borderRadius: (deviceWidth * 0.23) / 2,
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    cameraIconSmall: {
-        width: deviceWidth * 0.13,
-        height: deviceWidth * 0.13,
-        opacity: 0.9
-    },
-    photoSmall: {
-        width: deviceWidth * 0.19,
-        height: deviceWidth * 0.19,
-        borderRadius: (deviceWidth * 0.19) / 2
+    processButtonContainer: {
+        marginTop: 40,
+        alignSelf: 'center',
     },
     processButton: {
-        backgroundColor: '#FFD369',
-        padding: 10,
-        borderRadius: 5,
-        marginTop: 80,
-        alignItems: 'center'
+        backgroundColor: '#007AFF',
+        borderRadius: 25,
+        paddingVertical: 8,
+        paddingHorizontal: 15,
     },
-    processButtonText: {
-        color: 'black',
-        fontSize: 16
-    }
+    processButtonTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Optional: to add a background overlay
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 30,
+        borderRadius: 20,
+        alignItems: 'center',
+        width: deviceWidth * 0.8, // 80% of screen width
+        maxWidth: 400,
+    },
+    icon: {
+        marginBottom: 20,
+    },
+    spinner: {
+        marginBottom: 20,
+    },
+    modalText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
 });
 
-class CameraButton extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            type: this.props.type,
-            imageSource: null,
-            options: ['Take Photo', 'Choose from Library', 'Cancel'],
-            test: '',
-            ingredients: [],
-            isUploading: false
-        };
+const ProcessingModal = () => {
+    return (
+        <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+                <Icon name="cutlery" size={50} color="#007AFF" style={styles.icon} />
+                <ActivityIndicator size="large" color="#007AFF" style={styles.spinner} />
+                <Text style={styles.modalText}>Procesando Ingredientes...</Text>
+            </View>
+        </View>
+    );
+};
 
-        if (this.props.defaultImage !== undefined){
-            this.state.directUrl = this.props.directUrl;
-            if (this.props.directUrl){
-              this.state.imageSource = {
-                  uri: Config.IMAGE_URL+'/'+this.props.defaultImage+'.jpg'
-              };
-            }else{
-              var response = this.props.defaultImage;
-              var source = {
-                  uri: Platform.OS === 'ios' ? response.uri.replace('file://', '') : response.uri
-              };
-              this.state.imageSource = source;
-            }
-        }
-    }
+const CameraButton = ({ navigation }) => {
+    const [imageSource, setImageSource] = useState(null);
+    const [ingredients, setIngredients] = useState([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [modalId, setModalId] = useState(null);
+    const actionSheetRef = useRef();
 
-    async componentDidUpdate(prevProps, prevState) {
-        if (this.state.ingredients !== prevState.ingredients) {
-            this.setState({ isUploading: true });
-    
-            try {
-                const response = await axios.post('http://localhost:8000/get-recipes/', {
-                    ingredients: this.state.ingredients,
-                }, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
+    useEffect(() => {
+        if (ingredients.length > 0) {
+            axios.post('https://anchovy-aware-abnormally.ngrok-free.app/get-recipes/', {
+                ingredients: ingredients,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => {
                 const data = response.data;
-                this.props.navigation.navigate('Recipes', { recipes: data.recipes });
-            } catch (error) {
+                console.log(data);
+                navigation.navigate('Nuestras recomendaciones', { recipes: data.recipes });
+            }).catch(error => {
                 console.error('Error fetching recipes:', error);
-            } finally {
-                this.setState({ isUploading: false });
-            }
+            }).finally(() => {
+                setIsUploading(false);
+            });
         }
-    }
+    }, [ingredients]);
 
-    async extractData(file) {
+    const extractData = async (file) => {
         const apiKey = '8d2e6323-0c89-11ef-b268-763d7df91960';
-        const modelId = '4b364195-6436-46c1-a8e7-e9998cfac73b'
-        const authHeaderVal =
-            "Basic " + Buffer.from(`${apiKey}:`, "utf-8").toString("base64");
+        const modelId = '4b364195-6436-46c1-a8e7-e9998cfac73b';
+        const authHeaderVal = "Basic " + Buffer.from(`${apiKey}:`, "utf-8").toString("base64");
         const fileurl = `urls=${file}`;
 
         try {
@@ -166,49 +137,58 @@ class CameraButton extends Component {
                     }
                 }
             );
-            console.log(response.data.result[0].prediction[0].ocr_text)
-            this.setState({ ingredients: [response.data.result[0].prediction[0].ocr_text] });
+            console.log(response.data.result[0].prediction[0].ocr_text);
+            setIngredients([response.data.result[0].prediction[0].ocr_text]);
             return response.data.result[0].prediction[0].ocr_text;
         } catch (err) {
             console.error(err);
-            this.setState({ isUploading: false });
+            setIsUploading(false);
             return null;
         }
-    }
+    };
 
-    showActionSheet() {
-        this.ActionSheet.show();
-    }
+    const showActionSheet = () => {
+        actionSheetRef.current.show();
+    };
 
-    uploadImageToStorage = (path, imageName) => {
-        this.setState({ isUploading: true });
+    const uploadImageToStorage = (path, imageName) => {
         let reference = storage().ref(imageName);
         let task = reference.putFile(path);
 
-        task.then(() => {   
+        task.then(() => {
             reference.getDownloadURL().then((url) => {
-                this.extractData(url);
-            })
+                extractData(url);
+            });
         }).catch((e) => {
             console.log('uploading image error => ', e);
-            this.setState({ isUploading: false });
+            setIsUploading(false);
         });
-    }
+    };
 
-    uploadPhoto(response) {
+    const uploadPhoto = (response) => {
         if (response.didCancel) {
             console.log('User cancelled image picker');
         } else if (response.error) {
             console.log('ImagePicker Error: ', response.error);
         } else {
-            var source = {
+            const source = {
                 uri: Platform.OS === 'ios' ? response.uri.replace('file://', '') : response.uri
             };
-            this.setState({ imageSource: source });
+            setImageSource(source);
         }
-    }
+    };
 
-    takePhoto() {
+    useEffect(() => {
+        if (isUploading) {
+            const id = magicModal.show(() => <ProcessingModal />);
+            setModalId(id);
+        }
+        else if (!isUploading && modalId) {
+            magicModal.hide(modalId);   
+        }
+    }, [isUploading]);
+
+    const takePhoto = () => {
         var options = {
             storageOptions: {
                 skipBackup: true
@@ -216,15 +196,14 @@ class CameraButton extends Component {
         };
         ImagePicker.launchCamera(options, (response) => {
             if (response && response.assets && response.assets.length > 0) {
-                this.uploadPhoto(response.assets[0]);
+                uploadPhoto(response.assets[0]);
             } else {
-                // Handle the case when the user cancels the photo selection
                 console.log('User cancelled photo selection');
             }
         });
-    }
+    };
 
-    chooseFromLibrary() {
+    const chooseFromLibrary = () => {
         var options = {
             storageOptions: {
                 skipBackup: true
@@ -232,66 +211,60 @@ class CameraButton extends Component {
         };
         ImagePicker.launchImageLibrary(options, (response) => {
             if (response && response.assets && response.assets.length > 0) {
-                this.uploadPhoto(response.assets[0]);
+                uploadPhoto(response.assets[0]);
             } else {
-                // Handle the case when the user cancels the photo selection
                 console.log('User cancelled photo selection');
             }
         });
-    }
+    };
 
-    processIngredients = () => {
-        if (this.state.imageSource) {
-            // const fileName = this.state.imageSource.uri.split('/').pop();
-            // this.uploadImageToStorage(this.state.imageSource.uri, fileName);
-            this.setState({ ingredients: ['baguette' ,'jamon' ,'queso'] });
+    const processIngredients = () => {
+        if (imageSource) {
+            setIsUploading(true);
+            // const fileName = imageSource.uri.split('/').pop();
+            // uploadImageToStorage(imageSource.uri, fileName);
+            setIngredients(['jjagjagj']);
         }
-    }
+    };
 
-    render() {
-        const { isUploading, imageSource } = this.state;
-
-        return (
-            <View>
-                <TouchableOpacity
-                    onPress={this.showActionSheet.bind(this)}>
-                    <View style={this.state.type == 'home' ? styles.button : styles.buttonSmall}>
-                        {imageSource == null ? (
-                            <Image style={this.state.type == 'home' ? styles.cameraIcon : styles.cameraIconSmall}
-                                source={require('./assets/whiteicon.png')}
-                            />
-                        ) : (
-                            <Image style={this.state.type == 'home' ? styles.photo : styles.photoSmall}
-                                source={imageSource}
-                            />
-                        )}
-                    </View>
-                </TouchableOpacity>
-                <ActionSheet
-                    ref={o => this.ActionSheet = o}
-                    title={'Upload a Photo'}
-                    options={this.state.options}
-                    cancelButtonIndex={this.state.options.length - 1}
-                    destructiveButtonIndex={-1}
-                    onPress={(index) => {
-                        if (index == 0) {
-                            this.takePhoto();
-                        } else if (index == 1) {
-                            this.chooseFromLibrary();
-                        }
-                    }}
+    return (
+        <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={showActionSheet}>
+                <View style={styles.button}>
+                    {imageSource == null ? (
+                        <Icon name="camera" style={styles.iconStyle} />
+                    ) : (
+                        <Image style={styles.photo} source={imageSource} />
+                    )}
+                </View>
+            </TouchableOpacity>
+            <ActionSheet
+                ref={actionSheetRef}
+                title={'Upload a Photo'}
+                options={['Take Photo', 'Choose from Library', 'Cancel']}
+                cancelButtonIndex={2}
+                destructiveButtonIndex={-1}
+                onPress={(index) => {
+                    if (index === 0) {
+                        takePhoto();
+                    } else if (index === 1) {
+                        chooseFromLibrary();
+                    }
+                }}
+            />
+            {imageSource && !isUploading && (
+                <Button
+                    icon={<Icon name="cutlery" size={15} color="white" paddingHorizontal={5} paddingVertical={5} />}
+                    buttonStyle={styles.processButton}
+                    containerStyle={styles.processButtonContainer}
+                    titleStyle={styles.processButtonTitle}
+                    title="Procesar Ingredientes"
+                    onPress={processIngredients}
                 />
-                {imageSource && !isUploading && (
-                    <TouchableOpacity style={styles.processButton} onPress={this.processIngredients}>
-                        <Text style={styles.processButtonText}>Procesar Ingredientes</Text>
-                    </TouchableOpacity>
-                )}
-                {isUploading && (
-                    <ActivityIndicator size="large" color="#0000ff" />
-                )}
-            </View>
-        );
-    }
-}
+            )}
+            <MagicModalPortal />
+        </View>
+    );
+};
 
 export default connect()(CameraButton);

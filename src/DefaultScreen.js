@@ -6,8 +6,8 @@ const DefaultScreen = ({ navigation }) => {
         <View style={styles.defaultContainer}>
             <Text style={styles.defaultText}>No ingredients provided.</Text>
             <Button
-                title="Go to Home"
-                onPress={() => navigation.navigate('Home')}  // Adjust the navigation as needed
+                title="Ir a procesar ingredientes"
+                onPress={() => navigation.navigate('Procesar ingredientes')}  // Adjust the navigation as needed
             />
         </View>
     );
@@ -18,11 +18,10 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#121212',
     },
     defaultText: {
         fontSize: 18,
-        color: '#fff',
+        color: '#000000',
         marginBottom: 20,
     },
 });

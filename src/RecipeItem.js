@@ -9,7 +9,7 @@ const deviceWidth = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   recipeContainer: {
     marginBottom: 20,
-    backgroundColor: '#FFD369',
+    backgroundColor: '#ADD8E6',
     borderRadius: 10,
     overflow: 'hidden',
     position: 'relative',
@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     flex: 1,
+    color: '#222222',
   },
   recipeDescription: {
     fontSize: 14,
@@ -64,6 +65,18 @@ const styles = StyleSheet.create({
   },
 });
 
+const RecipeDirections = ({ directions }) => {
+    return (
+      <View style={styles.directionsList}>
+        {directions.split(/\d+\./).filter(Boolean).map((direction, index) => (
+          <Text key={index} style={styles.directionItem}>
+            {index + 1}. {direction.trim()}
+          </Text>
+        ))}
+      </View>
+    );
+  };
+  
 const RecipeItem = ({ recipe, deviceId, isSaved = false, showStar = true }) => {
   const [expanded, setExpanded] = useState(false);
   const [saved, setSaved] = useState(isSaved);
@@ -74,7 +87,7 @@ const RecipeItem = ({ recipe, deviceId, isSaved = false, showStar = true }) => {
 
   const saveRecipe = async () => {
     try {
-      await axios.post('http://localhost:8000/save-recipes/', {
+      await axios.post('https://anchovy-aware-abnormally.ngrok-free.app/save-recipes/', {
         recipe_id: recipe.id,
         device_id: deviceId,
         url: recipe.url,
@@ -114,13 +127,9 @@ const RecipeItem = ({ recipe, deviceId, isSaved = false, showStar = true }) => {
         </View>
         {expanded && (
           <View>
-            <Text style={styles.ingredients}>Ingredients: {recipe.ingredients}</Text>
-            <Text style={styles.directions}>Directions:</Text>
-            <View style={styles.directionsList}>
-              {recipe.directions.split('. ').map((direction, index) => (
-                <Text key={index} style={styles.directionItem}>{index + 1}. {direction}</Text>
-              ))}
-            </View>
+            <Text style={styles.ingredients}>Ingredientes: {recipe.ingredients}</Text>
+            <Text style={styles.directions}>Pasos:</Text>
+            <RecipeDirections directions={recipe.directions} />
           </View>
         )}
       </View>

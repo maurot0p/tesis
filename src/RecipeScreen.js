@@ -23,7 +23,6 @@ const searchImage = async (query) => {
       return PLACEHOLDER_IMAGE_URL;
     }
   } catch (error) {
-    console.error('Error searching for image:', error);
     return PLACEHOLDER_IMAGE_URL;
   }
 };
@@ -32,13 +31,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#121212'
+    backgroundColor: '#FFFFFF'
   },
   title: {
     fontSize: 20,
     marginBottom: 20,
     fontWeight: 'bold',
-    color: '#fff'
+    color: '#000000'
   },
   loadingContainer: {
     flex: 1,
@@ -64,21 +63,24 @@ const RecipesScreen = ({ route, navigation }) => {
       }
     };
 
-    const fetchImages = async () => {
+    const fetchImages = async (recipes) => {
       const updatedRecipes = await Promise.all(
-        recipes?.map(async (recipe) => {
+        recipes.map(async (recipe) => {
           const imageUrl = await searchImage(recipe.name);
-          console.log(imageUrl);
+          console.log('Image URL:', imageUrl);
           return { ...recipe, url: imageUrl };
         })
       );
       setRecipesWithImages(updatedRecipes);
-      setLoading(false);
     };
-    fetchDeviceId();
-    if (recipes){
-      fetchImages();
-    }
+
+    fetchDeviceId().then(() => {
+      if (recipes && recipes.length > 0) {
+        setRecipesWithImages(recipes.map(recipe => ({ ...recipe, url: PLACEHOLDER_IMAGE_URL })));
+        fetchImages(recipes);
+      }
+      setLoading(false);
+    });
   }, [recipes]);
 
   if (!recipes || recipes.length === 0) {
@@ -95,7 +97,6 @@ const RecipesScreen = ({ route, navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Nuestras recomendaciones para ti:</Text>
       {recipesWithImages.map((recipe, index) => (
         <RecipeItem key={index} recipe={recipe} deviceId={deviceId} />
       ))}
